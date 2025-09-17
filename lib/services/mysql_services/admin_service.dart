@@ -51,7 +51,7 @@ class AdminService {
       fullName: Encryption.encryptText(admin.fullName),
       email: Encryption.encryptText(admin.email),
       phoneNumber: Encryption.encryptText(admin.phoneNumber),
-      password: Encryption.encryptText(admin.password),
+      password:admin.password,
     );
     await _adminDAO.updateAdmin(encryptedAdmin);
   }

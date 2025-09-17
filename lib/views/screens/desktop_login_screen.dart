@@ -8,6 +8,7 @@ import 'package:flood_monitoring/views/widgets/message_dialog.dart';
 import 'package:flood_monitoring/views/widgets/textformfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flood_monitoring/shared_pref.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class DesktopLoginScreen extends StatefulWidget {
   const DesktopLoginScreen({super.key});
@@ -80,6 +81,7 @@ class _DesktopLoginScreenState extends State<DesktopLoginScreen> {
     await SharedPref.setString('admin_name', adminName ?? 'Admin');
     if (_rememberMe) {
       final adminName = await _adminController.getAdminNameByUsername(username);
+      await SharedPref.setString('username', username);
       await SharedPref.setString('admin_id', adminName ?? '');
       await SharedPref.setString('remember_me', 'true');
     }
@@ -134,7 +136,7 @@ class _DesktopLoginScreenState extends State<DesktopLoginScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.primaryBackground,
+                  AppColors.accentBlue,
                   AppColors.accentBlue.withOpacity(0.5),
                 ],
               ),
@@ -171,12 +173,12 @@ class _DesktopLoginScreenState extends State<DesktopLoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(65),
+                              padding: const EdgeInsets.all(38),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: Colors.white.withOpacity(0.1),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: AppColors.accentBlue,
                                   width: 2,
                                 ),
                               ),
@@ -184,18 +186,18 @@ class _DesktopLoginScreenState extends State<DesktopLoginScreen> {
                                 image: AssetImage(
                                   'assets/images/app_icon_desktop.png',
                                 ),
-                                width: 150,
-                                height: 150,
+                                width: 200,
+                                height: 200,
                               ),
                             ),
-                            const SizedBox(height: 28),
+                            const SizedBox(height: 24),
                             Text(
-                              'Real-time water level monitoring and alert system',
+                              'Banate MDRRMO \nFlood Monitoring System',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 30,
+                              style: GoogleFonts.ibmPlexSerif(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.accentBlue,
+                                fontSize: 26,
                                 height: 1.5,
                               ),
                             ),

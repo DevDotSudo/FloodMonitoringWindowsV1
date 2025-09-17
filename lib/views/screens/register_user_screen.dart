@@ -73,7 +73,8 @@ class _RegisterUserScreenState extends State<RegisterUserScreen> {
               'MMMM d, yyyy - h:mm a',
             ).format(DateTime.now()),
             viaSMS:
-                'yes', 
+                'Yes', 
+            viaApp: 'No'
           ),
         );
 

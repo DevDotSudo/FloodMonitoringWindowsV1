@@ -5,6 +5,8 @@ import 'package:flood_monitoring/views/widgets/button.dart';
 import 'package:flood_monitoring/views/widgets/confirmation_dialog.dart';
 import 'package:flood_monitoring/views/widgets/textformfield.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:uuid/uuid.dart';
 
 class RegisterAdminScreen extends StatefulWidget {
   const RegisterAdminScreen({super.key});
@@ -21,6 +23,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _uid = Uuid();
   bool _isLoading = false;
   late final AdminService _adminService;
 
@@ -48,6 +51,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
 
     try {
       final admin = AdminRegistration(
+        id: _uid.v4(),
         username: _usernameController.text.trim(),
         fullName: _fullnameController.text.trim(),
         email: _emailController.text.trim(),
@@ -112,7 +116,7 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.primaryBackground,
+                  AppColors.accentBlue,
                   AppColors.accentBlue.withOpacity(0.5),
                 ],
               ),
@@ -149,12 +153,12 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(65),
+                              padding: const EdgeInsets.all(45),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: Colors.white.withOpacity(0.1),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: AppColors.accentBlue,
                                   width: 2,
                                 ),
                               ),
@@ -162,27 +166,29 @@ class _RegisterAdminScreenState extends State<RegisterAdminScreen> {
                                 image: AssetImage(
                                   'assets/images/app_icon_desktop.png',
                                 ),
-                                width: 150,
-                                height: 150,
+                                width: 200,
+                                height: 200,
                               ),
                             ),
                             const SizedBox(height: 32),
-                            const Text(
-                              'ADMIN REGISTRATION',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
+                            Text(
+                              'Admin Registration',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.ibmPlexSerif(
                                 fontWeight: FontWeight.bold,
-                                letterSpacing: 1.2,
+                                color: AppColors.accentBlue,
+                                fontSize: 32,
+                                height: 1.5,
                               ),
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Create a new admin account to manage the system',
+                              'Create a new admin to manage the system.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 16,
+                              style: GoogleFonts.ibmPlexSerif(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.accentBlue,
+                                fontSize: 18,
                                 height: 1.5,
                               ),
                             ),

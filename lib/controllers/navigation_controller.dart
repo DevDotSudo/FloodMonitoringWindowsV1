@@ -6,7 +6,6 @@ enum ScreenType {
   waterLevelData,
   registerUser,
   sendWarningAlert,
-  notifications,
   settings,
 }
 

@@ -1,7 +1,6 @@
 import 'package:flood_monitoring/constants/app_colors.dart';
 import 'package:flood_monitoring/controllers/navigation_controller.dart';
 import 'package:flood_monitoring/views/screens/dashboard_screen.dart';
-import 'package:flood_monitoring/views/screens/notification_screen.dart';
 import 'package:flood_monitoring/views/screens/register_user_screen.dart';
 import 'package:flood_monitoring/views/screens/send_warning_alert_screen.dart';
 import 'package:flood_monitoring/views/screens/settings_screen.dart';
@@ -95,8 +94,6 @@ class MainLayout extends StatelessWidget {
         return const RegisterUserScreen();
       case ScreenType.sendWarningAlert:
         return const SendWarningAlertScreen();
-      case ScreenType.notifications:
-        return const NotificationScreen();
       case ScreenType.settings:
         return const SettingsScreen();
     }

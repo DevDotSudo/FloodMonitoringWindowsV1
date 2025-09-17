@@ -15,17 +15,21 @@ class SubscribersScreen extends StatefulWidget {
 }
 
 class _SubscribersScreenState extends State<SubscribersScreen> {
+  
   @override
   void initState() {
-    super.initState();
     _loadSubscribers();
+    SubscriberController().startListenerAfterBuild();
+    super.initState();
   }
 
-  Future<void> _loadSubscribers() async {
-    await Provider.of<SubscriberController>(
-      context,
-      listen: false,
-    ).loadSubscribers();
+  void _loadSubscribers() {
+    setState(() {
+      Provider.of<SubscriberController>(
+        context,
+        listen: false,
+      ).loadSubscribers();
+    });
   }
 
   @override
@@ -252,10 +256,8 @@ class _SubscribersScreenState extends State<SubscribersScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12.0),
                         child: TextButton(
-                          onPressed: () => _deleteSubscriber(
-                            controller,
-                            subscriber,
-                          ),
+                          onPressed: () =>
+                              _deleteSubscriber(controller, subscriber),
                           child: const Text(
                             "Delete",
                             style: TextStyle(color: Colors.red),
@@ -274,28 +276,27 @@ class _SubscribersScreenState extends State<SubscribersScreen> {
   }
 
   Future<void> _deleteSubscriber(
-    SubscriberController subscriberController,
-    Subscriber subscriber,
-  ) async {
-    final result = await CustomConfirmationDialog.show(
+  SubscriberController subscriberController,
+  Subscriber subscriber,
+) async {
+  final result = await CustomConfirmationDialog.show(
+    context: context,
+    title: 'Delete Subscriber',
+    message: 'Do you want to delete this subscriber?',
+    confirmText: 'Ok',
+    cancelText: 'Cancel',
+    confirmColor: Colors.red,
+  );
+
+  if (result == true) {
+    await subscriberController.deleteSubscriber(subscriber.id);
+    await MessageDialog.show(
       context: context,
-      title: 'Delete Subscriber',
-      message: 'Do you want to delete this subscriber?',
-      confirmText: 'Ok',
-      cancelText: 'Cancel',
-      confirmColor: Colors.red,
+      title: 'Subscriber Deleted',
+      message: 'Subscriber deleted successfully.',
     );
 
-    if (result == true) {
-      subscriberController.deleteSubscriber(subscriber.id);
-      await MessageDialog.show(
-        context: context,
-        title: 'Subscriber Deleted',
-        message: 'Subscriber deleted successfully.',
-      );
-      setState(() {
-        _loadSubscribers();
-      });
-    }
+    _loadSubscribers();
   }
+}
 }

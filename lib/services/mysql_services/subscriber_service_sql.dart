@@ -7,6 +7,15 @@ class SqlSubscriberService {
   final SqlSubscribersDAO _subscribersDao = SqlSubscribersDAO();
 
   Future<void> syncSubscriberFromFirebase(Subscriber subscriber) async {
+    if (subscriber.id.isEmpty &&
+        subscriber.name.isEmpty &&
+        subscriber.age.isEmpty &&
+        subscriber.gender.isEmpty &&
+        subscriber.address.isEmpty &&
+        subscriber.phone.isEmpty) {
+      return;
+    }
+
     final mappedSubscriber = Subscriber(
       id: subscriber.id,
       name: subscriber.name,
@@ -16,8 +25,8 @@ class SqlSubscriberService {
       phone: subscriber.phone,
       registeredDate: subscriber.registeredDate,
       viaSMS: subscriber.viaSMS,
+      viaApp: subscriber.viaApp,
     );
-
     await _subscribersDao.insertToMySQL(mappedSubscriber);
   }
 
@@ -31,6 +40,7 @@ class SqlSubscriberService {
       address: Encryption.encryptText(subscriber.address),
       registeredDate: subscriber.registeredDate,
       viaSMS: subscriber.viaSMS,
+      viaApp: subscriber.viaApp,
     );
     await _subscribersDao.addSubscriber(encryptedSubscriber);
   }
@@ -46,7 +56,12 @@ class SqlSubscriberService {
 
   Future<List<Subscriber>> getAllSubscribers() async {
     final list = await _subscribersDao.fetchSubscribers();
-    return list
+
+    if (list.isEmpty) {
+      return [];
+    }
+
+    List<Subscriber> subscribers = list
         .map(
           (data) => Subscriber.fromMap({
             'id': data['id'] ?? '',
@@ -57,9 +72,11 @@ class SqlSubscriberService {
             'phoneNumber': Encryption.decryptText(data['phoneNumber'] ?? ''),
             'registeredDate': data['registeredDate'] ?? '',
             'viaSMS': data['viaSMS'],
+            'viaApp': data['viaApp'],
           }),
         )
         .toList();
+    return subscribers;
   }
 
   Future<String> getPhoneNumbers() async {

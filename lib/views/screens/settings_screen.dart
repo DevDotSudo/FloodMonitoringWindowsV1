@@ -1,10 +1,11 @@
+import 'package:flood_monitoring/services/mysql_services/admin_service.dart';
+import 'package:flood_monitoring/shared_pref.dart';
+import 'package:flood_monitoring/views/widgets/change_password_dialog.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(FloodMonitoringApp());
-}
-
 class FloodMonitoringApp extends StatelessWidget {
+  const FloodMonitoringApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -30,7 +31,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _pushNotifications = false;
   double _alertThreshold = 3.0;
 
-  final TextEditingController _alertThresholdController = TextEditingController();
+  final TextEditingController _alertThresholdController =
+      TextEditingController();
 
   @override
   void initState() {
@@ -47,12 +49,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        elevation: 2,
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Center(
@@ -88,8 +84,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: 'Alert Preferences',
                     children: [
                       CheckboxListTile(
-                        title: const Text('Sound Alerts', 
-                            style: TextStyle(color: Color(0xFF2C3E50), fontSize: 16)),
+                        title: const Text(
+                          'Sound Alerts',
+                          style: TextStyle(
+                            color: Color(0xFF2C3E50),
+                            fontSize: 16,
+                          ),
+                        ),
                         value: _soundAlerts,
                         onChanged: (bool? value) {
                           setState(() {
@@ -101,8 +102,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         contentPadding: EdgeInsets.zero,
                       ),
                       CheckboxListTile(
-                        title: const Text('Push Notifications', 
-                            style: TextStyle(color: Color(0xFF2C3E50), fontSize: 16)),
+                        title: const Text(
+                          'Push Notifications',
+                          style: TextStyle(
+                            color: Color(0xFF2C3E50),
+                            fontSize: 16,
+                          ),
+                        ),
                         value: _pushNotifications,
                         onChanged: (bool? value) {
                           setState(() {
@@ -113,52 +119,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         controlAffinity: ListTileControlAffinity.leading,
                         contentPadding: EdgeInsets.zero,
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Flood Alert Threshold (meters)',
-                        style: TextStyle(color: Color(0xFF7F8C8D), fontSize: 16.0),
-                      ),
-                      const SizedBox(height: 8.0),
-                      TextField(
-                        controller: _alertThresholdController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          hintText: 'e.g., 3.0',
-                          filled: true,
-                          fillColor: const Color(0xFFF5F7FA),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                        ),
-                        onChanged: (value) {
-                          _alertThreshold = double.tryParse(value) ?? 0.0;
-                        },
-                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
-                  // Account Security
                   _buildSettingsSection(
                     title: 'Account Security',
                     children: [
                       Row(
                         children: [
-                          Expanded( 
-                            child: ElevatedButton( 
-                              onPressed: () {
-                                // Handle change password
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                final adminService = AdminService();
+                                final username = await SharedPref.getString(
+                                  'username',
+                                );
+                                final admin = await adminService
+                                    .getAdminByUsername(username ?? '');
+                                if (admin != null) {
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (_) => ChangePasswordDialog(
+                                      admin: admin,
+                                      adminService: adminService,
+                                    ),
+                                  );
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.grey.shade600,
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 12,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              child: const Text('Change Password', 
-                                  style: TextStyle(color: Colors.white)),
+                              child: const Text(
+                                'Change Password',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -169,13 +171,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red.shade600,
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 12,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              child: const Text('Delete Account', 
-                                  style: TextStyle(color: Colors.white)),
+                              child: const Text(
+                                'Delete Account',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
                         ],
@@ -187,7 +194,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     alignment: Alignment.centerRight,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Handle save settings
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Settings saved successfully'),
@@ -197,13 +203,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 28,
+                          vertical: 14,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text('Save Settings', 
-                          style: TextStyle(color: Colors.white, fontSize: 16)),
+                      child: const Text(
+                        'Save Settings',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
                     ),
                   ),
                 ],
@@ -215,7 +226,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSettingsSection({required String title, required List<Widget> children}) {
+  Widget _buildSettingsSection({
+    required String title,
+    required List<Widget> children,
+  }) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(

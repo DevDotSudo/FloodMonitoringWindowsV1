@@ -64,13 +64,6 @@ class Sidebar extends StatelessWidget {
           ),
           _buildNavLink(
             context,
-            icon: Icons.notifications_outlined,
-            label: 'Notifications',
-            screenType: ScreenType.notifications,
-            navigationController: navigationController,
-          ),
-          _buildNavLink(
-            context,
             icon: Icons.settings,
             label: 'Settings',
             screenType: ScreenType.settings,
@@ -140,9 +133,9 @@ class Sidebar extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.white70,
+                  color: isSelected ? AppColors.accentBlue : Colors.white70,
                   fontSize: 16,
-                  fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 ),
               ),
             ],

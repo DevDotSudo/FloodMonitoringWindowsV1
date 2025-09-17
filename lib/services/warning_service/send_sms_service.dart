@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class SendWarningSMS {
   final String _apiToken = "2246|Gs1xhKUx4eVFqQxv3vMrhF24XxBxE7a66eWPxUhy ";
-  final String _sendeName = "PhilSMS";
+  final String _senderName = "PhilSMS";
 
   Future<void> sendSms(String message, String recipient) async {
     final url = Uri.parse("https://app.philsms.com/api/v3/sms/send"); 
@@ -13,7 +13,7 @@ class SendWarningSMS {
       "Authorization": "Bearer $_apiToken",
     };
     final body = jsonEncode({
-      "sender_id": _sendeName,
+      "sender_id": _senderName,
       "recipient": recipient,
       "message": message,
     });
@@ -23,10 +23,8 @@ class SendWarningSMS {
 
       if (response.statusCode == 200) {
         print("SMS sent successfully.");
-        print(response.body);
       } else {
         print("Failed: ${response.statusCode}");
-        print(response.body);
       }
     } catch (e) {
       print("Error: $e");

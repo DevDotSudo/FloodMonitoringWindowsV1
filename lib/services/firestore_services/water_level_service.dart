@@ -13,10 +13,10 @@ class WaterLevelService {
     return _waterLevelsRef
         .orderBy('timestamp', descending: false)
         .snapshots()
-        .map((snapshot) {
+        .asyncMap((snapshot) async {
           return snapshot.docs.map((doc) {
             return WaterLevelDataPoint(
-              time: doc['timestamp'],
+              time: doc['hour'],
               level: doc['level'],
               status: doc['status'],
             );
@@ -25,7 +25,7 @@ class WaterLevelService {
   }
 
   void startListening() {
-    watchWaterLevels().listen((data) {  
+    watchWaterLevels().listen((data) {
       if (data.isEmpty) return;
       final status = data.last.status;
 

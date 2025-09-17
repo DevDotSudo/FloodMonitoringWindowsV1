@@ -1,12 +1,15 @@
 import 'package:flood_monitoring/constants/app_colors.dart';
+import 'package:flood_monitoring/controllers/water_level_data_controller.dart';
 import 'package:flood_monitoring/models/water_level_data.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class WaterLevelGraph extends StatelessWidget {
   final List<WaterLevelDataPoint> dataPoints;
+  final WaterLevelDataController _waterLevelDataController =
+      WaterLevelDataController();
 
-  const WaterLevelGraph({super.key, required this.dataPoints});
+  WaterLevelGraph({super.key, required this.dataPoints});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +18,7 @@ class WaterLevelGraph extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey.shade200),
-        color: Colors.grey.shade50, 
+        color: Colors.grey.shade50,
       ),
       child: LineChart(_buildChartData(dataPoints)),
     );
@@ -32,15 +35,13 @@ class WaterLevelGraph extends StatelessWidget {
 
     final maxY = data.map((e) => e.level).reduce((a, b) => a > b ? a : b) * 1.2;
 
-    final status = WaterLevelDataPoint.getWaterStatusFromList(
-      data.map((e) => e.toMap()).toList(),
-    );
+    final status = _waterLevelDataController.riverStatus;
 
     final lineColor = status == "Normal"
         ? AppColors.normalStatus
         : status == "Warning"
-            ? AppColors.warningStatus
-            : AppColors.criticalStatus;
+        ? AppColors.warningStatus
+        : AppColors.criticalStatus;
 
     return LineChartData(
       lineTouchData: LineTouchData(
@@ -57,7 +58,7 @@ class WaterLevelGraph extends StatelessWidget {
               ],
             );
           }).toList(),
-          getTooltipColor: (spot) => lineColor.withOpacity(0.8), 
+          getTooltipColor: (spot) => lineColor.withOpacity(0.8),
           tooltipBorderRadius: BorderRadius.circular(8),
           tooltipPadding: const EdgeInsets.all(8),
         ),
@@ -107,7 +108,7 @@ class WaterLevelGraph extends StatelessWidget {
         ),
         leftTitles: AxisTitles(
           axisNameWidget: const Text(
-            'Water Level (meter)',
+            'Water Level (feet)',
             style: TextStyle(
               color: AppColors.textGrey,
               fontSize: 14,
@@ -122,7 +123,7 @@ class WaterLevelGraph extends StatelessWidget {
             getTitlesWidget: (value, meta) {
               if (value < 0) return const SizedBox.shrink();
               return Text(
-                '${value.toInt()}m',
+                '${value.toInt()}f',
                 style: const TextStyle(fontSize: 12, color: AppColors.textGrey),
               );
             },
@@ -136,7 +137,7 @@ class WaterLevelGraph extends StatelessWidget {
       minX: 0,
       maxX: data.length.toDouble() - 1,
       minY: 0,
-      maxY: maxY < 5 ? 5 : maxY,
+      maxY: maxY < 12 ? 12 : maxY,
       lineBarsData: [
         LineChartBarData(
           spots: data
@@ -169,5 +170,5 @@ class WaterLevelGraph extends StatelessWidget {
     if (maxY <= 10) return 2;
     if (maxY <= 20) return 5;
     return (maxY / 5).ceilToDouble();
-  } 
+  }
 }

@@ -7,6 +7,7 @@ class Subscriber {
   final String phone;
   final String registeredDate;
   final String viaSMS;
+  final String viaApp;
 
   Subscriber({
     required this.id,
@@ -17,6 +18,7 @@ class Subscriber {
     required this.phone,
     required this.registeredDate,
     required this.viaSMS,
+    required this.viaApp,
   });
 
   factory Subscriber.fromMap(Map<String, dynamic> map) {
@@ -29,6 +31,7 @@ class Subscriber {
       phone: map['phoneNumber'] ?? '',
       registeredDate: map['registeredDate'] ?? '',
       viaSMS: map['viaSMS'] ?? '',
+      viaApp: map['viaApp'] ?? '',
     );
   }
 
@@ -42,11 +45,12 @@ class Subscriber {
       'phoneNumber': phone,
       'registeredDate': registeredDate,
       'viaSMS': viaSMS,
+      'viaApp': viaApp,
     };
   }
 
   @override
   String toString() {
-    return 'Subscriber(id: $id, name: $name, age: $age, gender: $gender, address: $address, phone: $phone, registeredDate: $registeredDate $viaSMS)';
+    return 'Subscriber(id: $id, name: $name, age: $age, gender: $gender, address: $address, phone: $phone, registeredDate: $registeredDate $viaSMS $viaApp)';
   }
 }

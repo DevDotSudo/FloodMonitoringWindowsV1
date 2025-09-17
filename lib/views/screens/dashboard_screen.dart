@@ -57,8 +57,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         stream: _waterLevelController.watchWaterLevels(),
         builder: (context, snapshot) {
           final data = snapshot.data ?? [];
-          final currentLevel = data.isNotEmpty ? data.last.level : 0.0;
-          final status = data.isNotEmpty ? data.last.status : 'No readings.';
+          _waterLevelController.liveWaterLevelData = data;
+          final currentLevel = _waterLevelController.currentWaterLevel;
+          final status = _waterLevelController.riverStatus;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(18.0),
@@ -96,10 +97,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           final crossAxisCount = 3;
                           return GridView.count(
                             shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
                             crossAxisCount: crossAxisCount,
-                            crossAxisSpacing: 36,
-                            childAspectRatio: crossAxisCount == 3 ? 3 : 4,
+                            crossAxisSpacing: 45,
+                            childAspectRatio: 3,
                             children: [
                               _buildSubscribersCard(totalSubscribers ?? 0),
                               _buildWaterLevelCard(currentLevel.toStringAsFixed(2)),
@@ -208,11 +208,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required String value,
   }) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 32),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         border: Border(
-          left: BorderSide(color: iconColor, width: 4),
+          left: BorderSide(color: iconColor, width: 6),
         ),
         boxShadow: [
           BoxShadow(
@@ -225,24 +225,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Row(
         children: [
           Container(
-            width: 85,
-            height: 85,
+            width: 75,
+            height: 75,
             decoration: BoxDecoration(
               color: iconColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(icon, color: iconColor, size: 45),
+            child: Icon(icon, color: iconColor, size: 38),
           ),
           const SizedBox(width: 34),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Text(
                   value,
                   style: TextStyle(
-                    fontSize: 36,
+                    fontSize: 32,
                     fontWeight: FontWeight.w700,
                     color: iconColor,
                   ),
@@ -250,7 +250,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   label,
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF64748B),
                   ),

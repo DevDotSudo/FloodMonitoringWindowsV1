@@ -49,10 +49,12 @@ class SubscriberController with ChangeNotifier {
     notifyListeners();
   }
 
+  
   void startListenerAfterBuild() {
     Future.delayed(Duration.zero, () {
       addSubscriberFromFirestoreListener();
     });
+    notifyListeners();
   }
 
   Future<void> addSubscriber(Subscriber newSubscriber) async {

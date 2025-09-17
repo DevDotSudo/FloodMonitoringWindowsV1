@@ -22,7 +22,7 @@
         stream: _waterLevelController.watchWaterLevels(),
         builder: (context, snapshot) {
           final data = snapshot.data ?? [];
-
+          
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -71,7 +71,7 @@
     }
 
     Widget _buildDataTable(List<WaterLevelDataPoint> data) {
-      final recent = data.take(5).toList();
+      final recent = data.take(1000).toList();
 
       return Container(
         width: double.infinity,
@@ -104,7 +104,7 @@
               ),
               DataColumn(
                 label: Text(
-                  'Level (m)',
+                  'Level (f)',
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 18,

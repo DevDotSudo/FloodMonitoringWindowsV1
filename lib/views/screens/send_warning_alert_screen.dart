@@ -1,8 +1,6 @@
 import 'package:flood_monitoring/constants/app_colors.dart';
-import 'package:flood_monitoring/controllers/notification_history_controller.dart';
 import 'package:flood_monitoring/controllers/send_warning_controller.dart';
 import 'package:flood_monitoring/controllers/subscriber_controller.dart';
-import 'package:flood_monitoring/models/notification_history.dart';
 import 'package:flood_monitoring/services/firestore_services/app_warning_message.dart';
 import 'package:flood_monitoring/services/warning_service/gsm_module_service.dart';
 import 'package:flood_monitoring/views/widgets/button.dart';
@@ -10,7 +8,6 @@ import 'package:flood_monitoring/views/widgets/card.dart';
 import 'package:flood_monitoring/views/widgets/textformfield.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
 
 class SendWarningAlertScreen extends StatefulWidget {
   const SendWarningAlertScreen({super.key});
@@ -21,9 +18,8 @@ class SendWarningAlertScreen extends StatefulWidget {
 
 class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
   final _subscriberController = SubscriberController();
-  final _notificationHistoryController = NotificationHistoryController();
   final _sendWarningController = SendWarningController();
-  final _gsmModuleService = GsmModuleService("COM3");
+  final _gsmModuleService = GsmSender();
   final TextEditingController _messageController = TextEditingController();
   bool _notifyOnApp = false;
   bool _gsmModule = false;
@@ -50,8 +46,6 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
 
   Future<void> _onSendAlertPressed() async {
     final String message = _messageController.text.trim();
-    final String id = const Uuid().v4();
-
     if (message.isEmpty) {
       ScaffoldMessenger.of(
         context,
@@ -78,26 +72,9 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
               'Banate MDRRMO (${DateFormat('MM/dd/yyyy hh:mm a').format(DateTime.now())}): $message',
           recipient: recipients,
         );
-
-        await _notificationHistoryController.createNotification(
-          NotificationHistory(
-            id: id,
-            message: message,
-            status: 'Delivered',
-            timestamp: DateTime.now(),
-          ),
-        );
       } else if (_notifyOnApp) {
         _sendWarningController.appNotification();
         AppWarningMessage().storeWarningMessage(message);
-        await _notificationHistoryController.createNotification(
-          NotificationHistory(
-            id: id,
-            message: message,
-            status: 'Delivered',
-            timestamp: DateTime.now(),
-          ),
-        );
       } else if (_sendSms) {
         String recipients = await _subscriberController.phoneNumbers();
 
@@ -106,22 +83,10 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
               'Banate MDRRMO (${DateFormat('MM/dd/yyyy hh:mm a').format(DateTime.now())}): $message',
           recipient: recipients,
         );
-
-        await _notificationHistoryController.createNotification(
-          NotificationHistory(
-            id: id,
-            message: message,
-            status: 'Delivered',
-            timestamp: DateTime.now(),
-          ),
-        );
       } else if (_gsmModule) {
-        String recipients = await _subscriberController.phoneNumbers();
-
-        if (_gsmModuleService.open()) {
-          await _gsmModuleService.sendSmsToMultiple(recipients, message);
-        } else {
-          throw Exception("Failed to open GSM port");
+        // String recipients = await _subscriberController.phoneNumbers();
+        if (_gsmModuleService.connect("COM4")) {
+          await _gsmModuleService.sendMessage("+639944934153", message);
         }
       }
 

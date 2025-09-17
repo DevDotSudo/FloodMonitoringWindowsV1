@@ -6,9 +6,10 @@ class AdminDAO {
     final conn = await MySQLService.getConnection();
     try {
       await conn.execute(
-        'INSERT INTO admins (username, fullName, email, phoneNumber, password) '
-        'VALUES (:username, :fullName, :email, :phone, :password)',
+        'INSERT INTO admins (id, username, fullName, email, phoneNumber, password) '
+        'VALUES (:id, :username, :fullName, :email, :phone, :password)',
         {
+          'id': admin.id,
           'username': admin.username,
           'fullName': admin.fullName,
           'email': admin.email,
@@ -64,7 +65,7 @@ class AdminDAO {
           'email': admin.email,
           'phone': admin.phoneNumber,
           'password': admin.password,
-          'id': admin.id!,
+          'id': admin.id,
         },
       );
     } finally {

@@ -1,36 +1,25 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const admin = require("firebase-admin");
+const { SerialPort } = require("serialport");
 
-const serviceAccount = require("C:\\Users\\Davie\\Programming\\FlutterDevelopment\\CapstoneProject\\flood_monitoring\\assets\\serviceAccount.json"); 
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
-const db = admin.firestore();
 const app = express();
 app.use(bodyParser.json());
 
-app.post("/water-level", async (req, res) => {
-  try {
-    const { level, status, timestamp } = req.body;
+const arduinoPort = new SerialPort({ path: "COM3", baudRate: 9600 });
 
-    await db.collection("WATER_LEVEL").add({
-      level: level,
-      status: status,
-      timestamp: timestamp || new Date().toISOString()
-    });
+app.post("/send-sms", (req, res) => {
+  const { number, message } = req.body;
+  if (!number || !message) return res.status(400).json({ error: "number and message required" });
 
-    console.log("Data saved:", req.body);
-    res.status(200).send("Data stored in Firestore");
-  } catch (err) {
-    console.error("Error:", err);
-    res.status(500).send("Error storing data");
-  }
+  const cmd = `${number}|${message}\n`;
+  arduinoPort.write(cmd, (err) => {
+    if (err) {
+      console.error("❌ Error writing to Arduino:", err);
+      return res.status(500).json({ error: "Failed to send SMS" });
+    }
+    console.log("📤 Sent to Arduino:", cmd.trim());
+    res.json({ status: "SMS request sent to Arduino" });
+  });
 });
 
-const PORT = 3000;
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
-});
+app.listen(3000, () => console.log("✅ Node.js API running on http://localhost:3000"));

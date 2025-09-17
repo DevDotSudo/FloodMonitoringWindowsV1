@@ -12,12 +12,28 @@ class SqlSubscribersDAO {
       );
 
       if (result.rows.isNotEmpty) {
+        await conn.execute(
+          'UPDATE subscribers SET fullName = :fullName, age = :age, gender = :gender, '
+          'phoneNumber = :phoneNumber, address = :address, registeredDate = :registeredDate, '
+          'viaSMS = :viaSMS, viaApp = :viaApp WHERE id = :id',
+          {
+            'id': subscriberData.id,
+            'fullName': subscriberData.name,
+            'age': subscriberData.age,
+            'gender': subscriberData.gender,
+            'phoneNumber': subscriberData.phone,
+            'address': subscriberData.address,
+            'registeredDate': subscriberData.registeredDate,
+            'viaSMS': subscriberData.viaSMS,
+            'viaApp': subscriberData.viaApp,
+          },
+        );
         return;
       }
 
       await conn.execute(
-        'INSERT INTO subscribers (id, fullName, age, gender, phoneNumber, address, registeredDate, viaSMS) '
-        'VALUES (:id, :fullName, :age, :gender, :phoneNumber, :address, :registeredDate, :viaSMS)',
+        'INSERT INTO subscribers (id, fullName, age, gender, phoneNumber, address, registeredDate, viaSMS, viaApp) '
+        'VALUES (:id, :fullName, :age, :gender, :phoneNumber, :address, :registeredDate, :viaSMS, :viaApp)',
         {
           'id': subscriberData.id,
           'fullName': subscriberData.name,
@@ -27,6 +43,7 @@ class SqlSubscribersDAO {
           'address': subscriberData.address,
           'registeredDate': subscriberData.registeredDate,
           'viaSMS': subscriberData.viaSMS,
+          'viaApp': subscriberData.viaApp,
         },
       );
     } catch (e) {

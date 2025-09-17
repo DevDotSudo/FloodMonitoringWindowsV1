@@ -24,16 +24,4 @@ class WaterLevelDataPoint {
       'status': status,
     };
   }
-
-  static double getCurrentWaterLevelFromList(List<Map<String, dynamic>> data) {
-    if (data.isEmpty) return 0.0;
-    final last = WaterLevelDataPoint.fromMap(data.last);
-    return last.level;
-  }
-
-  static String getWaterStatusFromList(List<Map<String, dynamic>> data) {
-    if (data.isEmpty) return 'No readings.';
-    final last = WaterLevelDataPoint.fromMap(data.last);
-    return last.status;
-  }
 }

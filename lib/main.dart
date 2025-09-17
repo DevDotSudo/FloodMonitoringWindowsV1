@@ -21,8 +21,8 @@ void main() async {
       .then((_) => print('MySQL connected'))
       .catchError((error) => print('MySQL connection error: $error'));
   WaterLevelService().startListening();
-  runApp(const FloodMonitoring());
   
+  runApp(const FloodMonitoring());
   doWhenWindowReady(() {
     const minSize = Size(1700, 900);
     appWindow.minSize = minSize;
@@ -30,7 +30,7 @@ void main() async {
     appWindow.alignment = Alignment.center;
     appWindow.show();
   });
-  SubscriberController().startListenerAfterBuild();
+  
 }
 
 class FloodMonitoring extends StatelessWidget {

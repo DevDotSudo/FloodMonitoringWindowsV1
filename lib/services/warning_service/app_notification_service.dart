@@ -9,7 +9,7 @@ class AppNotificationService {
 
   static final String _fcmEndpoint =
       'https://fcm.googleapis.com/v1/projects/capstone-flood-monitoring/messages:send';
-  static const String _serviceAccountPath = 'assets/google-services.json';
+  static const String _serviceAccountPath = 'assets/serviceAccount.json';
 
   Future<AccessCredentials> _getAccessToken() async {
     final jsonKey =
