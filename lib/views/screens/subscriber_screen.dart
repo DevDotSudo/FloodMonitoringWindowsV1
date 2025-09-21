@@ -1,11 +1,12 @@
-import 'package:flood_monitoring/models/subscriber.dart';
-import 'package:flood_monitoring/views/widgets/confirmation_dialog.dart';
-import 'package:flood_monitoring/views/widgets/message_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'package:flood_monitoring/constants/app_colors.dart';
 import 'package:flood_monitoring/controllers/subscriber_controller.dart';
+import 'package:flood_monitoring/models/subscriber.dart';
 import 'package:flood_monitoring/views/widgets/card.dart';
+import 'package:flood_monitoring/views/widgets/confirmation_dialog.dart';
+import 'package:flood_monitoring/views/widgets/message_dialog.dart';
 
 class SubscribersScreen extends StatefulWidget {
   const SubscribersScreen({super.key});
@@ -15,21 +16,20 @@ class SubscribersScreen extends StatefulWidget {
 }
 
 class _SubscribersScreenState extends State<SubscribersScreen> {
-  
+  bool _isLoading = false;
+
   @override
   void initState() {
-    _loadSubscribers();
-    SubscriberController().startListenerAfterBuild();
     super.initState();
+    _loadSubscribers();
   }
 
-  void _loadSubscribers() {
-    setState(() {
-      Provider.of<SubscriberController>(
-        context,
-        listen: false,
-      ).loadSubscribers();
-    });
+  Future<void> _loadSubscribers() async {
+    setState(() => _isLoading = true);
+    SubscriberController().startListenerAfterBuild();
+    await Provider.of<SubscriberController>(context, listen: false)
+        .loadSubscribers();
+    setState(() => _isLoading = false);
   }
 
   @override
@@ -46,52 +46,49 @@ class _SubscribersScreenState extends State<SubscribersScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Header with Search and Refresh button
                   SizedBox(
                     width: double.infinity,
                     child: isMediumScreen
                         ? Row(
                             children: [
-                              Expanded(
-                                child: Text(
-                                  'Subscribers',
-                                  style: TextStyle(
-                                    color: AppColors.textDark,
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 32,
-                                  ),
-                                ),
-                              ),
+                              Expanded(child: _buildHeaderText()),
+                              _buildRefreshButton(),
+                              const SizedBox(width: 12),
                               SizedBox(
                                 width: isLargeScreen ? 400 : 300,
-                                child: _buildSearchField(context, controller),
+                                child: _buildSearchField(controller),
                               ),
                             ],
                           )
                         : Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Subscribers',
-                                style: TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.textDark,
-                                ),
-                              ),
+                              _buildHeaderText(),
                               const SizedBox(height: 12),
-                              _buildSearchField(context, controller),
+                              Row(
+                                children: [
+                                  Expanded(child: _buildSearchField(controller)),
+                                  const SizedBox(width: 12),
+                                  _buildRefreshButton(),
+                                ],
+                              ),
                             ],
                           ),
                   ),
                   const SizedBox(height: 24),
+
+                  // Content
                   Expanded(
                     child: CustomCard(
                       padding: EdgeInsets.zero,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: controller.display.isEmpty
-                            ? _buildEmptyState(controller)
-                            : _buildResponsiveTable(context, controller),
+                        child: _isLoading
+                            ? _buildLoadingState()
+                            : controller.display.isEmpty
+                                ? _buildEmptyState()
+                                : _buildResponsiveTable(controller),
                       ),
                     ),
                   ),
@@ -104,10 +101,28 @@ class _SubscribersScreenState extends State<SubscribersScreen> {
     );
   }
 
-  Widget _buildSearchField(
-    BuildContext context,
-    SubscriberController controller,
-  ) {
+  // --- Widgets ---
+
+  Widget _buildHeaderText() {
+    return Text(
+      'Subscribers',
+      style: TextStyle(
+        color: AppColors.textDark,
+        fontWeight: FontWeight.w800,
+        fontSize: 32,
+      ),
+    );
+  }
+
+  Widget _buildRefreshButton() {
+    return IconButton(
+      icon: Icon(Icons.refresh, color: AppColors.primary),
+      onPressed: _loadSubscribers,
+      tooltip: 'Refresh subscribers',
+    );
+  }
+
+  Widget _buildSearchField(SubscriberController controller) {
     return TextField(
       decoration: InputDecoration(
         hintText: 'Search by name...',
@@ -118,35 +133,31 @@ class _SubscribersScreenState extends State<SubscribersScreen> {
         ),
         filled: true,
         fillColor: AppColors.lightGreyBackground,
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 12.0,
-          horizontal: 16.0,
-        ),
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
         constraints: const BoxConstraints(maxHeight: 48),
       ),
       onChanged: (value) async {
+        setState(() => _isLoading = true);
         controller.updateSearchQuery(value);
         controller.display = await controller.filteredSubscribers();
+        setState(() => _isLoading = false);
       },
     );
   }
 
-  Widget _buildEmptyState(SubscriberController controller) {
-    return Padding(
-      padding: const EdgeInsets.all(32.0),
-      child: Center(
+  Widget _buildLoadingState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.people_alt_outlined,
-              size: 64,
-              color: Colors.grey.shade300,
-            ),
-            const SizedBox(height: 16),
+          children: const [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
             Text(
-              'No subscribers found',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+              'Loading subscribers...',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
           ],
         ),
@@ -154,104 +165,66 @@ class _SubscribersScreenState extends State<SubscribersScreen> {
     );
   }
 
-  Widget _buildResponsiveTable(
-    BuildContext context,
-    SubscriberController controller,
-  ) {
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.all(32.0),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.people_alt_outlined,
+                size: 64, color: Colors.grey.shade300),
+            const SizedBox(height: 16),
+            Text(
+              'No subscribers found',
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: _loadSubscribers,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResponsiveTable(SubscriberController controller) {
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
       child: SizedBox(
         width: double.infinity,
         child: IntrinsicWidth(
           child: DataTableTheme(
-            data: DataTableThemeData(
+            data: const DataTableThemeData(
               dataRowMinHeight: 65.0,
               dataRowMaxHeight: 65.0,
               headingRowHeight: 65.0,
             ),
             child: DataTable(
               headingRowColor: WidgetStateColor.resolveWith(
-                (states) => Colors.grey.shade100,
+                (states) => const Color(0xFFF5F5F5),
               ),
-              columns: const [
-                DataColumn(label: Text('Name', style: TextStyle(fontSize: 20))),
-                DataColumn(label: Text('Age', style: TextStyle(fontSize: 20))),
-                DataColumn(
-                  label: Text('Gender', style: TextStyle(fontSize: 20)),
-                ),
-                DataColumn(
-                  label: Text('Address', style: TextStyle(fontSize: 20)),
-                ),
-                DataColumn(
-                  label: Text('Phone', style: TextStyle(fontSize: 20)),
-                ),
-                DataColumn(
-                  label: Text(
-                    'Registered Date',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                ),
-                DataColumn(
-                  label: Text('Actions', style: TextStyle(fontSize: 20)),
-                ),
+              columns: [
+                _headerCell('Name'),
+                _headerCell('Age'),
+                _headerCell('Gender'),
+                _headerCell('Address'),
+                _headerCell('Phone'),
+                _headerCell('Registered Date'),
+                _headerCell('Actions'),
               ],
               rows: controller.display.map((subscriber) {
                 return DataRow(
                   cells: [
-                    DataCell(
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: Text(
-                          subscriber.name,
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: Text(
-                          subscriber.age,
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: Text(
-                          subscriber.gender,
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: Text(
-                          subscriber.address,
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: Text(
-                          subscriber.phone,
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: Text(
-                          subscriber.registeredDate,
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
+                    _dataCell(subscriber.name),
+                    _dataCell(subscriber.age),
+                    _dataCell(subscriber.gender),
+                    _dataCell(subscriber.address),
+                    _dataCell(subscriber.phone),
+                    _dataCell(subscriber.registeredDate),
                     DataCell(
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -275,28 +248,48 @@ class _SubscribersScreenState extends State<SubscribersScreen> {
     );
   }
 
-  Future<void> _deleteSubscriber(
-  SubscriberController subscriberController,
-  Subscriber subscriber,
-) async {
-  final result = await CustomConfirmationDialog.show(
-    context: context,
-    title: 'Delete Subscriber',
-    message: 'Do you want to delete this subscriber?',
-    confirmText: 'Ok',
-    cancelText: 'Cancel',
-    confirmColor: Colors.red,
-  );
+  // --- Table Helpers ---
+  DataColumn _headerCell(String text) {
+    return DataColumn(
+      label: Text(text, style: const TextStyle(fontSize: 20)),
+    );
+  }
 
-  if (result == true) {
-    await subscriberController.deleteSubscriber(subscriber.id);
-    await MessageDialog.show(
+  DataCell _dataCell(String value) {
+    return DataCell(
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12.0),
+        child: Text(value, style: const TextStyle(fontSize: 16)),
+      ),
+    );
+  }
+
+  // --- Actions ---
+  Future<void> _deleteSubscriber(
+    SubscriberController controller,
+    Subscriber subscriber,
+  ) async {
+    final result = await CustomConfirmationDialog.show(
       context: context,
-      title: 'Subscriber Deleted',
-      message: 'Subscriber deleted successfully.',
+      title: 'Delete Subscriber',
+      message: 'Do you want to delete this subscriber?',
+      confirmText: 'Ok',
+      cancelText: 'Cancel',
+      confirmColor: Colors.red,
     );
 
-    _loadSubscribers();
+    if (result == true) {
+      setState(() => _isLoading = true);
+      await controller.deleteSubscriber(subscriber.id);
+      setState(() => _isLoading = false);
+
+      await MessageDialog.show(
+        context: context,
+        title: 'Subscriber Deleted',
+        message: 'Subscriber deleted successfully.',
+      );
+
+      _loadSubscribers();
+    }
   }
-}
 }

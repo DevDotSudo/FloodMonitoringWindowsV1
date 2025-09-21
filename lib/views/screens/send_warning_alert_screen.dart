@@ -21,6 +21,7 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
   final _sendWarningController = SendWarningController();
   final _gsmModuleService = GsmSender();
   final TextEditingController _messageController = TextEditingController();
+
   bool _notifyOnApp = false;
   bool _gsmModule = false;
   bool _sendSms = false;
@@ -39,25 +40,48 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
   }
 
   void _updateUi() {
-    if (mounted) {
-      setState(() {});
-    }
+    if (mounted) setState(() {});
+  }
+
+  /// 🔹 Reusable dialog
+  Future<void> _showDialog({
+    required String title,
+    required String message,
+    Color titleColor = AppColors.textDark,
+  }) {
+    return showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title, style: TextStyle(color: titleColor)),
+        content: Text(message),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        actions: [
+          TextButton(
+            child: const Text("OK"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _onSendAlertPressed() async {
     final String message = _messageController.text.trim();
+
     if (message.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Message cannot be empty')));
+      await _showDialog(
+        title: "Validation Error",
+        message: "Message cannot be empty.",
+        titleColor: AppColors.errorRed,
+      );
       return;
     }
 
     if (!_notifyOnApp && !_sendSms && !_gsmModule) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Select at least one delivery method (App or SMS).'),
-        ),
+      await _showDialog(
+        title: "No Delivery Method",
+        message: "Select at least one delivery method (App, SMS, or GSM).",
+        titleColor: AppColors.errorRed,
       );
       return;
     }
@@ -66,7 +90,6 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
       if (_notifyOnApp && _sendSms) {
         _sendWarningController.appNotification();
         String recipients = await _subscriberController.phoneNumbers();
-
         await _sendWarningController.sendWarningAlert(
           message:
               'Banate MDRRMO (${DateFormat('MM/dd/yyyy hh:mm a').format(DateTime.now())}): $message',
@@ -77,21 +100,21 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
         AppWarningMessage().storeWarningMessage(message);
       } else if (_sendSms) {
         String recipients = await _subscriberController.phoneNumbers();
-
         await _sendWarningController.sendWarningAlert(
           message:
               'Banate MDRRMO (${DateFormat('MM/dd/yyyy hh:mm a').format(DateTime.now())}): $message',
           recipient: recipients,
         );
       } else if (_gsmModule) {
-        // String recipients = await _subscriberController.phoneNumbers();
         if (_gsmModuleService.connect("COM4")) {
           await _gsmModuleService.sendMessage("+639944934153", message);
         }
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Warning alert sent successfully!')),
+      await _showDialog(
+        title: "Success",
+        message: "Warning alert sent successfully!",
+        titleColor: AppColors.statusNormalText,
       );
 
       _messageController.clear();
@@ -101,10 +124,11 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
         _gsmModule = false;
       });
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error sending alert: $e')));
-      print('Error: " $e');
+      await _showDialog(
+        title: "Error",
+        message: "Failed to send warning alert.\n\n$e",
+        titleColor: AppColors.errorRed,
+      );
     }
   }
 
@@ -142,6 +166,7 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
                   ),
                   const SizedBox(height: 32),
 
+                  // Message Input
                   Text(
                     'Message Content',
                     style: TextStyle(
@@ -157,15 +182,13 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
                     hintText: 'Compose your warning message here...',
                     fillColor: AppColors.lightGreyBackground,
                     borderRadius: 12.0,
-                    onChanged: (value) {
-                      setState(() {});
-                    },
+                    onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.centerRight,
                     child: Text(
-                      'Character count: ${_messageController.text.length}/160 (SMS limit guidance)',
+                      'Character count: ${_messageController.text.length}/160',
                       style: TextStyle(
                         fontSize: 12,
                         color: _messageController.text.length > 160
@@ -174,114 +197,39 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-
-                  Text(
-                    'Send To',
-                    style: TextStyle(
-                      color: AppColors.textDark,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8.0),
-                  DropdownButtonFormField<String>(
-                    value: 'app-subscribers',
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: AppColors.lightGreyBackground,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 12.0,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.lightBorder,
-                          width: 1,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.lightBorder,
-                          width: 1,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.accentBlue,
-                          width: 1.5,
-                        ),
-                      ),
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'app-subscribers',
-                        child: Text(
-                          'All App Subscribers',
-                          style: TextStyle(color: AppColors.textDark),
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: 'sms-only',
-                        child: Text(
-                          'All SMS Subscribers (via registered numbers)',
-                          style: TextStyle(color: AppColors.textDark),
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      print('Selected: $value');
-                    },
-                    dropdownColor: AppColors.cardBackground,
-                    style: const TextStyle(
-                      color: AppColors.textDark,
-                      fontSize: 16,
-                    ),
-                    iconEnabledColor: AppColors.textGrey,
-                  ),
 
                   const SizedBox(height: 24),
+
+                  // Checkboxes
                   Row(
                     children: [
                       Expanded(
                         child: _buildCheckboxTile(
                           title: 'Notify on App',
                           value: _notifyOnApp,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              _notifyOnApp = value ?? false;
-                            });
-                          },
+                          onChanged: (v) => setState(() => _notifyOnApp = v!),
                         ),
                       ),
                       Expanded(
                         child: _buildCheckboxTile(
                           title: 'Send SMS',
                           value: _sendSms,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              _sendSms = value ?? false;
-                            });
-                          },
+                          onChanged: (v) => setState(() => _sendSms = v!),
                         ),
                       ),
                       Expanded(
                         child: _buildCheckboxTile(
                           title: 'GSM Module',
                           value: _gsmModule,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              _gsmModule = value ?? false;
-                            });
-                          },
+                          onChanged: (v) => setState(() => _gsmModule = v!),
                         ),
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 32),
+
+                  // Button
                   SizedBox(
                     width: double.infinity,
                     child: CustomButton(
@@ -306,55 +254,6 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
                         ),
                       ),
                     ),
-                  if (_sendWarningController.alertStatusMessage.isNotEmpty &&
-                      !_sendWarningController.isLoading) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color:
-                            _sendWarningController.alertStatusMessage
-                                .toLowerCase()
-                                .contains('success')
-                            ? AppColors.statusNormalBg.withOpacity(0.2)
-                            : _sendWarningController.alertStatusMessage
-                                  .toLowerCase()
-                                  .contains('fail')
-                            ? AppColors.statusAlertBg.withOpacity(0.2)
-                            : AppColors.statusInfoBg.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color:
-                              _sendWarningController.alertStatusMessage
-                                  .toLowerCase()
-                                  .contains('success')
-                              ? AppColors.statusNormalText.withOpacity(0.4)
-                              : _sendWarningController.alertStatusMessage
-                                    .toLowerCase()
-                                    .contains('fail')
-                              ? AppColors.statusAlertText.withOpacity(0.4)
-                              : AppColors.statusInfoText.withOpacity(0.4),
-                        ),
-                      ),
-                      child: Text(
-                        _sendWarningController.alertStatusMessage,
-                        style: TextStyle(
-                          color:
-                              _sendWarningController.alertStatusMessage
-                                  .toLowerCase()
-                                  .contains('success')
-                              ? AppColors.statusNormalText
-                              : _sendWarningController.alertStatusMessage
-                                    .toLowerCase()
-                                    .contains('fail')
-                              ? AppColors.statusAlertText
-                              : AppColors.statusInfoText,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),

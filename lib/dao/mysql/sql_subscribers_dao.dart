@@ -6,34 +6,13 @@ class SqlSubscribersDAO {
     final conn = await MySQLService.getConnection();
 
     try {
-      final result = await conn.execute(
-        'SELECT id FROM subscribers WHERE id = :id',
-        {'id': subscriberData.id},
-      );
-
-      if (result.rows.isNotEmpty) {
-        await conn.execute(
-          'UPDATE subscribers SET fullName = :fullName, age = :age, gender = :gender, '
-          'phoneNumber = :phoneNumber, address = :address, registeredDate = :registeredDate, '
-          'viaSMS = :viaSMS, viaApp = :viaApp WHERE id = :id',
-          {
-            'id': subscriberData.id,
-            'fullName': subscriberData.name,
-            'age': subscriberData.age,
-            'gender': subscriberData.gender,
-            'phoneNumber': subscriberData.phone,
-            'address': subscriberData.address,
-            'registeredDate': subscriberData.registeredDate,
-            'viaSMS': subscriberData.viaSMS,
-            'viaApp': subscriberData.viaApp,
-          },
-        );
-        return;
-      }
-
       await conn.execute(
         'INSERT INTO subscribers (id, fullName, age, gender, phoneNumber, address, registeredDate, viaSMS, viaApp) '
-        'VALUES (:id, :fullName, :age, :gender, :phoneNumber, :address, :registeredDate, :viaSMS, :viaApp)',
+        'VALUES (:id, :fullName, :age, :gender, :phoneNumber, :address, :registeredDate, :viaSMS, :viaApp) '
+        'ON DUPLICATE KEY UPDATE '
+        'fullName = VALUES(fullName), age = VALUES(age), gender = VALUES(gender), '
+        'phoneNumber = VALUES(phoneNumber), address = VALUES(address), registeredDate = VALUES(registeredDate), '
+        'viaSMS = VALUES(viaSMS), viaApp = VALUES(viaApp)',
         {
           'id': subscriberData.id,
           'fullName': subscriberData.name,
@@ -47,7 +26,7 @@ class SqlSubscribersDAO {
         },
       );
     } catch (e) {
-      print('Error inserting subscriber: $e');
+      print('Error inserting or updating subscriber: $e');
       throw Exception(
         'There is an error while registering subscriber. Try again later.',
       );
@@ -60,7 +39,7 @@ class SqlSubscribersDAO {
     final conn = await MySQLService.getConnection();
     try {
       await conn.execute(
-        'INSERT INTO subscribers (id, fullName, age, gender, phoneNumber, address, registeredDate, viaSMS) VALUES (:id, :fullName, :age, :gender, :phoneNumber, :address, :registeredDate, :viaSMS)',
+        'INSERT INTO subscribers (id, fullName, age, gender, phoneNumber, address, registeredDate, viaSMS, viaApp) VALUES (:id, :fullName, :age, :gender, :phoneNumber, :address, :registeredDate, :viaSMS, :viaApp)',
         {
           'id': subscriberData.id,
           'fullName': subscriberData.name,
@@ -70,6 +49,7 @@ class SqlSubscribersDAO {
           'address': subscriberData.address,
           'registeredDate': subscriberData.registeredDate,
           'viaSMS': 'Yes',
+          'viaApp': 'No'
         },
       );
     } catch (e) {
