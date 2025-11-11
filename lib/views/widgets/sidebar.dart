@@ -126,14 +126,14 @@ class Sidebar extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                color: isSelected ? AppColors.accentBlue : Colors.white70,
+                color: Colors.white70,
                 size: 20,
               ),
               const SizedBox(width: 12),
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? AppColors.accentBlue : Colors.white70,
+                  color: Colors.white70,
                   fontSize: 16,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 ),

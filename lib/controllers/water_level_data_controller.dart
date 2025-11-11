@@ -6,9 +6,11 @@ class WaterLevelDataController extends ChangeNotifier {
   final WaterLevelService _service = WaterLevelService();
   List<WaterLevelDataPoint> liveWaterLevelData = [];
 
-  Stream<List<WaterLevelDataPoint>> watchWaterLevels() {
-    return _service.watchWaterLevels();
-  }
+  Stream<List<WaterLevelDataPoint>> watchWaterLevels() => 
+    _service.watchWaterLevels() ;
+
+  Stream<List<WaterLevelDataPoint>> watchRecentReadings() =>
+    _service.watchRecentReadings();
 
   String get riverStatus {
     if (liveWaterLevelData.isEmpty) return 'No readings.';

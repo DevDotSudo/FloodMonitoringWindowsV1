@@ -123,4 +123,30 @@ class SqlSubscribersDAO {
     await conn.close();
     return numbers;
   }
+
+  Future<List<String>> fetchAppSubscriberPhoneNumbers() async {
+    final conn = await MySQLService.getConnection();
+    final results = await conn.execute(
+      "SELECT phoneNumber FROM subscribers WHERE viaApp = 'Yes';",
+    );
+    List<String> numbers = [];
+    for (final row in results.rows) {
+      numbers.add(row.colByName("phoneNumber")!);
+    }
+    await conn.close();
+    return numbers;
+  }
+
+  Future<List<String>> fetchSmsOnlySubscriberPhoneNumbers() async {
+    final conn = await MySQLService.getConnection();
+    final results = await conn.execute(
+      "SELECT phoneNumber FROM subscribers WHERE viaSMS = 'Yes' AND viaApp = 'No';",
+    );
+    List<String> numbers = [];
+    for (final row in results.rows) {
+      numbers.add(row.colByName("phoneNumber")!);
+    }
+    await conn.close();
+    return numbers;
+  }
 }

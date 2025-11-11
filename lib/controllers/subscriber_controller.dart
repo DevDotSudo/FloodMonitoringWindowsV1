@@ -73,4 +73,12 @@ class SubscriberController with ChangeNotifier {
   Future<String> phoneNumbers() async {
     return await _subscriberService.getPhoneNumbers();
   }
+
+  Future<String> appSubscriberPhoneNumbers() async {
+    return await _subscriberService.getAppSubscriberPhoneNumbers();
+  }
+
+  Future<String> smsOnlySubscriberPhoneNumbers() async {
+    return await _subscriberService.getSmsOnlySubscriberPhoneNumbers();
+  }
 }

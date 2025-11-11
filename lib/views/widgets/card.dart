@@ -8,7 +8,7 @@ class CustomCard extends StatelessWidget {
   final List<BoxShadow>? boxShadow;
   final BorderRadiusGeometry? borderRadius;
   final Border? border;
-  final double elevation; // Add elevation property
+  final double elevation; 
 
   const CustomCard({
     super.key,
@@ -19,7 +19,7 @@ class CustomCard extends StatelessWidget {
     this.boxShadow,
     this.borderRadius,
     this.border,
-    this.elevation = 4.0, // Default elevation
+    this.elevation = 4.0, 
   });
 
   @override
@@ -34,21 +34,19 @@ class CustomCard extends StatelessWidget {
             Border.all(
                 color: Colors.grey.withOpacity(0.08),
                 width: 0.5),
-        boxShadow: boxShadow ?? _createDynamicShadow(elevation), // Use dynamic shadow
+        boxShadow: boxShadow ?? _createDynamicShadow(elevation), 
       ),
       child: child,
     );
   }
-
-  // A method to create a dynamic shadow based on elevation
+  
   List<BoxShadow> _createDynamicShadow(double currentElevation) {
-    // You can customize this formula based on how you want elevation to affect the shadow
     return [
       BoxShadow(
-        color: Colors.black.withOpacity(currentElevation * 0.01), // More opaque with higher elevation
-        blurRadius: currentElevation * 2.5, // Increase blur with elevation
+        color: Colors.black.withOpacity(currentElevation * 0.01), 
+        blurRadius: currentElevation * 2.5, 
         spreadRadius: 0,
-        offset: Offset(0, currentElevation * 0.8), // Increase offset with elevation
+        offset: Offset(0, currentElevation * 0.8), 
       ),
     ];
   }

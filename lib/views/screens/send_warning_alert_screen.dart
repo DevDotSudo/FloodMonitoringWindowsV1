@@ -26,10 +26,28 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
   bool _gsmModule = false;
   bool _sendSms = false;
 
+  final List<String> _customMessages = [
+    'Water level is rising rapidly. Evacuate to higher ground immediately.',
+    'Flood warning: River overflow expected within 2 hours. Prepare to evacuate.',
+    'Critical flood alert: Seek higher ground now. Do not attempt to cross flooded areas.',
+    'Moderate flood warning: Stay alert and monitor water levels. Prepare evacuation bags.',
+    'Severe weather alert: Heavy rainfall expected. Possible flooding in low-lying areas.',
+  ];
+
+  String? _selectedCustomMessage;
+
+  final List<String> _recipientTypes = [
+    'App Subscribers',
+    'SMS only Subscribers',
+    'All Subscribers',
+  ];
+  String? _selectedRecipientType;
+
   @override
   void initState() {
     super.initState();
     _sendWarningController.addListener(_updateUi);
+    _selectedRecipientType = _recipientTypes[2];
   }
 
   @override
@@ -43,7 +61,15 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
     if (mounted) setState(() {});
   }
 
-  /// 🔹 Reusable dialog
+  void _onCustomMessageSelected(String? value) {
+    if (value != null) {
+      setState(() {
+        _selectedCustomMessage = value;
+        _messageController.text = value;
+      });
+    }
+  }
+
   Future<void> _showDialog({
     required String title,
     required String message,
@@ -87,27 +113,28 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
     }
 
     try {
+      final String formattedMessage =
+          'Banate MDRRMO (${DateFormat('MM/dd/yyyy hh:mm a').format(DateTime.now())}): $message';
+
       if (_notifyOnApp && _sendSms) {
         _sendWarningController.appNotification();
-        String recipients = await _subscriberController.phoneNumbers();
+        String recipients = await _getRecipients();
         await _sendWarningController.sendWarningAlert(
-          message:
-              'Banate MDRRMO (${DateFormat('MM/dd/yyyy hh:mm a').format(DateTime.now())}): $message',
+          message: formattedMessage,
           recipient: recipients,
         );
       } else if (_notifyOnApp) {
         _sendWarningController.appNotification();
         AppWarningMessage().storeWarningMessage(message);
       } else if (_sendSms) {
-        String recipients = await _subscriberController.phoneNumbers();
+        String recipients = await _getRecipients();
         await _sendWarningController.sendWarningAlert(
-          message:
-              'Banate MDRRMO (${DateFormat('MM/dd/yyyy hh:mm a').format(DateTime.now())}): $message',
+          message: formattedMessage,
           recipient: recipients,
         );
       } else if (_gsmModule) {
-        if (_gsmModuleService.connect("COM4")) {
-          await _gsmModuleService.sendMessage("+639944934153", message);
+        if (_gsmModuleService.connect("COM3")) {
+          await _gsmModuleService.sendMessage("+639917859684", message);
         }
       }
 
@@ -122,6 +149,7 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
         _notifyOnApp = false;
         _sendSms = false;
         _gsmModule = false;
+        _selectedCustomMessage = null;
       });
     } catch (e) {
       await _showDialog(
@@ -129,6 +157,18 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
         message: "Failed to send warning alert.\n\n$e",
         titleColor: AppColors.errorRed,
       );
+    }
+  }
+
+  Future<String> _getRecipients() async {
+    switch (_selectedRecipientType) {
+      case 'App Subscribers':
+        return await _subscriberController.appSubscriberPhoneNumbers();
+      case 'SMS only Subscribers':
+        return await _subscriberController.smsOnlySubscriberPhoneNumbers();
+      case 'All Subscribers':
+      default:
+        return await _subscriberController.phoneNumbers();
     }
   }
 
@@ -166,7 +206,44 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Message Input
+                  Text(
+                    'Custom Warning Messages',
+                    style: TextStyle(
+                      color: AppColors.textDark,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.lightGreyBackground,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: DropdownButton<String>(
+                      value: _selectedCustomMessage,
+                      hint: const Text('Select a pre-defined message'),
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      items: _customMessages.map((String message) {
+                        return DropdownMenuItem<String>(
+                          value: message,
+                          child: Text(
+                            message.length > 60
+                                ? '${message.substring(0, 60)}...'
+                                : message,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: _onCustomMessageSelected,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
                   Text(
                     'Message Content',
                     style: TextStyle(
@@ -197,10 +274,53 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 24),
 
-                  // Checkboxes
+                  Text(
+                    'Send To : ',
+                    style: TextStyle(
+                      color: AppColors.textDark,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.lightGreyBackground,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: DropdownButton<String>(
+                      value: _selectedRecipientType,
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      items: _recipientTypes.map((String type) {
+                        return DropdownMenuItem<String>(
+                          value: type,
+                          child: Text(type),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedRecipientType = newValue;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  Text(
+                    'Send Via : ',
+                    style: TextStyle(
+                      color: AppColors.textDark,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
@@ -212,7 +332,7 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
                       ),
                       Expanded(
                         child: _buildCheckboxTile(
-                          title: 'Send SMS',
+                          title: 'SMS API',
                           value: _sendSms,
                           onChanged: (v) => setState(() => _sendSms = v!),
                         ),
@@ -226,10 +346,7 @@ class _SendWarningAlertScreenState extends State<SendWarningAlertScreen> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 32),
-
-                  // Button
                   SizedBox(
                     width: double.infinity,
                     child: CustomButton(

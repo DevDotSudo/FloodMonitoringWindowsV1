@@ -13,15 +13,40 @@ class WaterLevelService {
     return _waterLevelsRef
         .orderBy('timestamp', descending: false)
         .snapshots()
-        .asyncMap((snapshot) async {
-          return snapshot.docs.map((doc) {
+        .map((snapshot) {
+          final docs = snapshot.docs;
+
+          final latestDocs = docs.length > 7
+              ? docs.sublist(docs.length - 7)
+              : docs;
+
+          return latestDocs.map((doc) {
             return WaterLevelDataPoint(
               time: doc['hour'],
-              level: doc['level'],
+              level: (doc['level'] ?? 0).toDouble(),
               status: doc['status'],
             );
           }).toList();
         });
+  }
+
+  Stream<List<WaterLevelDataPoint>> watchRecentReadings() {
+    return _waterLevelsRef
+        .orderBy('timestamp', descending: false)
+        .snapshots()
+        .map((snapshot) {
+      final docs = snapshot.docs;
+      final recentDocs =
+          docs.length > 7 ? docs.sublist(0, docs.length - 7) : [];
+
+      return recentDocs.map((doc) {
+        return WaterLevelDataPoint(
+          time: doc['hour'],
+          level: (doc['level'] ?? 0).toDouble(),
+          status: doc['status'],
+        );
+      }).toList();
+    });
   }
 
   void startListening() {

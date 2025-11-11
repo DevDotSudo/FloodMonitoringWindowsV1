@@ -1,6 +1,11 @@
+import 'package:flood_monitoring/constants/app_colors.dart';
+import 'package:flood_monitoring/controllers/admin_controller.dart';
 import 'package:flood_monitoring/services/mysql_services/admin_service.dart';
 import 'package:flood_monitoring/shared_pref.dart';
+import 'package:flood_monitoring/views/screens/desktop_login_screen.dart';
 import 'package:flood_monitoring/views/widgets/change_password_dialog.dart';
+import 'package:flood_monitoring/views/widgets/confirmation_dialog.dart';
+import 'package:flood_monitoring/views/widgets/message_dialog.dart';
 import 'package:flutter/material.dart';
 
 class FloodMonitoringApp extends StatelessWidget {
@@ -37,9 +42,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadAdminData() async {
     final adminService = AdminService();
+    final adminController = AdminController(adminService);
     final username = await SharedPref.getString('username');
     if (username != null) {
-      final admin = await adminService.getAdminByUsername(username);
+      final admin = await adminController.getAdminByUsername(username);
       if (admin != null) {
         setState(() {
           _adminData = {
@@ -49,6 +55,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'phoneNumber': admin.phoneNumber,
           };
         });
+      }
+    }
+  }
+
+  void deleteAdmin() async {
+    final adminService = AdminService();
+    final adminController = AdminController(adminService);
+    final username = await SharedPref.getString('username');
+    if (username != null) {
+      final admin = await adminController.getAdminByUsername(username);
+      if (admin != null) {
+        final result = await CustomConfirmationDialog.show(
+          context: context,
+          title: 'Delete Account',
+          message: 'Do you want to delete your account?',
+          confirmText: 'Delete',
+          cancelText: 'Cancel',
+          confirmColor: AppColors.accentBlue,
+          cancelColor: Colors.red.shade300,
+        );
+
+        if (result == true) {
+          adminController.delete(admin.id!);
+          SharedPref.remove('username');
+          SharedPref.remove('remember_me');
+          SharedPref.remove('admin_id');
+          await MessageDialog.show(
+            context: context,
+            title: "Deleted Successfully",
+            message: 'You will be directed to login screen.',
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const DesktopLoginScreen()),
+          );
+        }
       }
     }
   }
@@ -90,7 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: 'Profile Information',
                     children: [
                       if (_adminData == null)
-                        const Center(child: CircularProgressIndicator())  
+                        const Center(child: CircularProgressIndicator())
                       else ...[
                         _buildProfileRow('Username', _adminData!['username']),
                         _buildProfileRow('Full Name', _adminData!['fullname']),
@@ -147,9 +189,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: () {
-                                // Handle delete account
-                              },
+                              onPressed: deleteAdmin,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red.shade600,
                                 padding: const EdgeInsets.symmetric(

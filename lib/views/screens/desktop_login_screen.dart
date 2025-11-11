@@ -70,6 +70,7 @@ class _DesktopLoginScreenState extends State<DesktopLoginScreen> {
       final adminName = await _adminController.getAdminNameByUsername(username);
       _showSuccessDialog('Welcome back, $adminName!', username);
       await _saveLoginData(username, adminName);
+      await SharedPref.setString('username', username);
     } catch (e) {
       _showErrorDialog(e.toString());
     } finally {
@@ -81,7 +82,6 @@ class _DesktopLoginScreenState extends State<DesktopLoginScreen> {
     await SharedPref.setString('admin_name', adminName ?? 'Admin');
     if (_rememberMe) {
       final adminName = await _adminController.getAdminNameByUsername(username);
-      await SharedPref.setString('username', username);
       await SharedPref.setString('admin_id', adminName ?? '');
       await SharedPref.setString('remember_me', 'true');
     }

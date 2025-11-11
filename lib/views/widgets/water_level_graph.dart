@@ -1,4 +1,5 @@
 import 'package:flood_monitoring/constants/app_colors.dart';
+import 'package:flood_monitoring/constants/water_level_status.dart';
 import 'package:flood_monitoring/controllers/water_level_data_controller.dart';
 import 'package:flood_monitoring/models/water_level_data.dart';
 import 'package:flutter/material.dart';
@@ -35,13 +36,16 @@ class WaterLevelGraph extends StatelessWidget {
 
     final maxY = data.map((e) => e.level).reduce((a, b) => a > b ? a : b) * 1.2;
 
+    _waterLevelDataController.liveWaterLevelData = dataPoints;
     final status = _waterLevelDataController.riverStatus;
 
-    final lineColor = status == "Normal"
+    final lineColor = status == WaterLevelStatus.normal
         ? AppColors.normalStatus
-        : status == "Warning"
+        : status == WaterLevelStatus.warning
         ? AppColors.warningStatus
-        : AppColors.criticalStatus;
+        : status == WaterLevelStatus.critical
+        ? AppColors.criticalStatus
+        : AppColors.info;
 
     return LineChartData(
       lineTouchData: LineTouchData(
@@ -52,7 +56,7 @@ class WaterLevelGraph extends StatelessWidget {
               const TextStyle(color: Colors.white),
               children: [
                 TextSpan(
-                  text: '${spot.y.toStringAsFixed(1)}m',
+                  text: '${spot.y.toStringAsFixed(1)}ft',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -119,11 +123,10 @@ class WaterLevelGraph extends StatelessWidget {
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 40,
-            interval: _calculateLeftInterval(maxY < 5 ? 5 : maxY),
             getTitlesWidget: (value, meta) {
               if (value < 0) return const SizedBox.shrink();
               return Text(
-                '${value.toInt()}f',
+                '${value.toInt()}ft',
                 style: const TextStyle(fontSize: 12, color: AppColors.textGrey),
               );
             },
@@ -137,7 +140,7 @@ class WaterLevelGraph extends StatelessWidget {
       minX: 0,
       maxX: data.length.toDouble() - 1,
       minY: 0,
-      maxY: maxY < 12 ? 12 : maxY,
+      maxY: maxY < 30 ? 30 : maxY,
       lineBarsData: [
         LineChartBarData(
           spots: data
@@ -148,7 +151,7 @@ class WaterLevelGraph extends StatelessWidget {
           isCurved: true,
           color: lineColor,
           barWidth: 3,
-          dotData: const FlDotData(show: false),
+          dotData: const FlDotData(show: true),
           belowBarData: BarAreaData(
             show: true,
             color: lineColor.withOpacity(0.3),
@@ -163,12 +166,5 @@ class WaterLevelGraph extends StatelessWidget {
     if (dataLength <= 12) return 2;
     if (dataLength <= 24) return 3;
     return (dataLength / 6).ceilToDouble();
-  }
-
-  double _calculateLeftInterval(double maxY) {
-    if (maxY <= 5) return 1;
-    if (maxY <= 10) return 2;
-    if (maxY <= 20) return 5;
-    return (maxY / 5).ceilToDouble();
   }
 }

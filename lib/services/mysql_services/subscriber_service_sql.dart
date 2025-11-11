@@ -87,6 +87,36 @@ class SqlSubscriberService {
         String decrypted = Encryption.decryptText(e);
         if (decrypted.startsWith('0')) {
           decrypted = '63${decrypted.substring(1)}';
+        } else if (decrypted.startsWith('+')) {
+          decrypted = '63${decrypted.substring(1)}';
+        }
+        return decrypted;
+      }).toList();
+
+      return decryptedNumbers.join(',');
+    } catch (e) {
+      print("Error: $e");
+      return '';
+    }
+  }
+
+  Future<String> getAppSubscriberPhoneNumbers() async {
+    final numbers = await _subscribersDao.fetchAppSubscriberPhoneNumbers();
+    return numbers.join(',');
+  }
+
+  Future<String> getSmsOnlySubscriberPhoneNumbers() async {
+    try {
+      List<String> encryptedNumbers = await _subscribersDao.fetchPhoneNumbers();
+
+      List<String> decryptedNumbers = encryptedNumbers.map((e) {
+        String decrypted = Encryption.decryptText(e);
+        if (decrypted.startsWith('0')) {
+          decrypted = '63${decrypted.substring(1)}';
+        }
+
+        else if (decrypted.startsWith('+')) {
+          decrypted = '63${decrypted.substring(1)}';
         }
         return decrypted;
       }).toList();

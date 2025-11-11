@@ -51,7 +51,7 @@ class _WeatherCardState extends State<WeatherCard> {
       setState(() => _weatherData = data);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _errorMessage = 'Failed to load weather: ${e.toString()}');
+      setState(() => _errorMessage = 'Failed to load weather');
     } finally {
       if (!mounted) return;
       setState(() => _isLoading = false);

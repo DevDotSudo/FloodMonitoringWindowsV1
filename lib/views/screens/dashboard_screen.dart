@@ -1,4 +1,5 @@
 import 'package:flood_monitoring/constants/app_colors.dart';
+import 'package:flood_monitoring/constants/water_level_status.dart';
 import 'package:flood_monitoring/controllers/subscriber_controller.dart';
 import 'package:flood_monitoring/controllers/water_level_data_controller.dart';
 import 'package:flood_monitoring/models/water_level_data.dart';
@@ -7,7 +8,6 @@ import 'package:flood_monitoring/views/widgets/card.dart';
 import 'package:flood_monitoring/views/widgets/water_level_graph.dart';
 import 'package:flood_monitoring/views/widgets/weather.dart';
 import 'package:flutter/material.dart';
-import 'package:flood_monitoring/services/alert_service/audio_alert_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -17,7 +17,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final audioService = AudioPlayerService();
   final SubscriberController _subscriberController = SubscriberController();
   final WaterLevelDataController _waterLevelController =
       WaterLevelDataController();
@@ -267,9 +266,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (status.isEmpty || status.contains('No readings.')) {
       return const Color(0xFF3B82F6);
     }
-    return status == "Normal"
+    return status == WaterLevelStatus.normal
         ? const Color(0xFF059669)
-        : status == "Warning"
+        : status == WaterLevelStatus.warning
         ? const Color(0xFFF59E0B)
         : const Color(0xFFDC2626);
   }
