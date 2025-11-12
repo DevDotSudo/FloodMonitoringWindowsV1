@@ -34,8 +34,6 @@ class WaterLevelGraph extends StatelessWidget {
       );
     }
 
-    final maxY = data.map((e) => e.level).reduce((a, b) => a > b ? a : b) * 1.2;
-
     _waterLevelDataController.liveWaterLevelData = dataPoints;
     final status = _waterLevelDataController.riverStatus;
 
@@ -140,7 +138,7 @@ class WaterLevelGraph extends StatelessWidget {
       minX: 0,
       maxX: data.length.toDouble() - 1,
       minY: 0,
-      maxY: maxY < 30 ? 30 : maxY,
+      maxY: 30,
       lineBarsData: [
         LineChartBarData(
           spots: data

@@ -35,18 +35,19 @@ class WaterLevelService {
         .orderBy('timestamp', descending: false)
         .snapshots()
         .map((snapshot) {
-      final docs = snapshot.docs;
-      final recentDocs =
-          docs.length > 7 ? docs.sublist(0, docs.length - 7) : [];
+          final docs = snapshot.docs;
+          final recentDocs = docs.length > 7
+              ? docs.sublist(0, docs.length - 7)
+              : [];
 
-      return recentDocs.map((doc) {
-        return WaterLevelDataPoint(
-          time: doc['hour'],
-          level: (doc['level'] ?? 0).toDouble(),
-          status: doc['status'],
-        );
-      }).toList();
-    });
+          return recentDocs.map((doc) {
+            return WaterLevelDataPoint(
+              time: doc['hour'],
+              level: (doc['level'] ?? 0).toDouble(),
+              status: doc['status'],
+            );
+          }).toList();
+        });
   }
 
   void startListening() {

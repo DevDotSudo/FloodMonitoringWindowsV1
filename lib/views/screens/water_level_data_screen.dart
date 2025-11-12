@@ -48,7 +48,7 @@ class _WaterLevelDataScreenState extends State<WaterLevelDataScreen> {
                         ),
                         const SizedBox(height: 16),
                         SizedBox(
-                          height: 600,
+                          height: 800,
                           child:
                               latestSnapshot.connectionState ==
                                   ConnectionState.waiting

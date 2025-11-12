@@ -3,6 +3,7 @@ import 'package:flood_monitoring/constants/water_level_status.dart';
 import 'package:flood_monitoring/controllers/subscriber_controller.dart';
 import 'package:flood_monitoring/controllers/water_level_data_controller.dart';
 import 'package:flood_monitoring/models/water_level_data.dart';
+import 'package:flood_monitoring/services/firestore_services/water_level_service.dart';
 import 'package:flood_monitoring/shared_pref.dart';
 import 'package:flood_monitoring/views/widgets/card.dart';
 import 'package:flood_monitoring/views/widgets/water_level_graph.dart';
@@ -20,6 +21,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final SubscriberController _subscriberController = SubscriberController();
   final WaterLevelDataController _waterLevelController =
       WaterLevelDataController();
+  final WaterLevelService service = WaterLevelService();
 
   int? totalSubscribers;
   String? _adminName;
@@ -101,8 +103,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             childAspectRatio: 3,
                             children: [
                               _buildSubscribersCard(totalSubscribers ?? 0),
-                              _buildWaterLevelCard(currentLevel.toStringAsFixed(2)),
-                              _buildRiverStatusCard(status),
+                              _buildWaterLevelCard(
+                                currentLevel.toStringAsFixed(2),
+                              ),
+                              _buildRiverStatusCard(status, (currentLevel - 8.0).toStringAsFixed(2)),
                             ],
                           );
                         },
@@ -134,36 +138,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 24),
+                          SizedBox(width: 24),
                           Expanded(
-                            flex: 1,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  "Today's Weather",
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textDark,
-                                  ),
-                                ),
-                              ],
+                            child: const Text(
+                              "Today's Weather",
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textDark,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 16,
-                      ), 
+                      const SizedBox(height: 16),
                       Row(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start, 
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             flex: 4,
                             child: SizedBox(
-                              height: 600, 
+                              height: 800,
                               child:
                                   snapshot.connectionState ==
                                       ConnectionState.waiting
@@ -177,15 +172,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     ),
                             ),
                           ),
-                          const SizedBox(
-                            width: 24,
-                          ), 
+                          SizedBox(width: 24),
                           Expanded(
-                            child: SizedBox(
-                              height: 550,
-                              width: double.infinity,
-                              child: WeatherCard(),
-                            ),
+                            flex: 1,
+                            child: SizedBox(height: 550, child: WeatherCard()),
                           ),
                         ],
                       ),
@@ -210,9 +200,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 32),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        border: Border(
-          left: BorderSide(color: iconColor, width: 6),
-        ),
+        border: Border(left: BorderSide(color: iconColor, width: 6)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
@@ -241,7 +229,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   value,
                   style: TextStyle(
-                    fontSize: 32,
+                    fontSize: 28,
                     fontWeight: FontWeight.w700,
                     color: iconColor,
                   ),
@@ -267,10 +255,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return const Color(0xFF3B82F6);
     }
     return status == WaterLevelStatus.normal
-        ? const Color(0xFF059669)
+        ? AppColors.statusNormalText
         : status == WaterLevelStatus.warning
-        ? const Color(0xFFF59E0B)
-        : const Color(0xFFDC2626);
+        ? AppColors.warningStatus
+        : AppColors.criticalStatus;
   }
 
   Widget _buildSubscribersCard(int subscriberCount) {
@@ -287,16 +275,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       icon: Icons.water_drop,
       iconColor: const Color(0xFF3B82F6),
       label: 'Current Water Level',
-      value: waterLevel,
+      value: '$waterLevel ft',
     );
   }
 
-  Widget _buildRiverStatusCard(String status) {
+  Widget _buildRiverStatusCard(String status, String waterLevel) {
     return _buildMetricCard(
       icon: Icons.warning,
       iconColor: _getStatusColor(status),
-      label: 'River Status',
-      value: status,
+      label: 'MDRRMO Marking Guide',
+      value: '$status $waterLevel',
     );
   }
 }
